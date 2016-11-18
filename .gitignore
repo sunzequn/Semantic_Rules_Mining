@@ -1,4 +1,7 @@
-*.class
+.idea
+target
+Semantic_Rules_Mining.iml
+
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
