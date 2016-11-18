@@ -67,7 +67,7 @@ public class Mining {
         if (args.length > 0) {
             confFile = args[0];
         } else {
-            confFile = "/home/sloriac/code/Semantic_Rules_Mining/src/main/resources/conf/input.properties";
+            confFile = "target/classes/conf/input.properties";
         }
         Mining m = new Mining(confFile);
         m.kConnectivityChain();
