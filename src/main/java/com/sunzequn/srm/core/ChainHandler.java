@@ -18,6 +18,8 @@ import java.util.Set;
  */
 public class ChainHandler {
 
+    private static final String TYPE_PROP = "";
+
     KConnectivityQuery query = new KConnectivityQuery();
 
     /**
