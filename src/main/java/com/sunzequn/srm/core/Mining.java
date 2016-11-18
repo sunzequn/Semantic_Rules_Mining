@@ -42,11 +42,11 @@ public class Mining {
         ChainHandler chainHandler = new ChainHandler();
         for (String[] pair : linkedInstancePairs) {
             Vertice vertice = chainHandler.kConnectivityPopulation(pair[0], 2, 1, conf);
-            List<String[]> chains = chainHandler.findKConnectivityChains(vertice, 2, null);
-            List<String[]> closedChains = chainHandler.closeChains(chains, kb1LinkedInstances);
-            System.out.println(chains.size());
+            List<String[]> closedChains = chainHandler.findClosedKConnectivityChains(vertice, 2, kb1LinkedInstances);
             System.out.println(closedChains.size());
-//            printChains(closedChains);
+            List<String[]> typeChains = chainHandler.findTypedChains(vertice);
+            System.out.println(typeChains.size());
+            printChains(typeChains);
             return;
         }
     }

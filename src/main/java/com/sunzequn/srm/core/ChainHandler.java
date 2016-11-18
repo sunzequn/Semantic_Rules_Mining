@@ -18,9 +18,41 @@ import java.util.Set;
  */
 public class ChainHandler {
 
-    private static final String TYPE_PROP = "";
+    private static final String TYPE_PROP = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
     KConnectivityQuery query = new KConnectivityQuery();
+
+    /**
+     * 给定一个起始点，查询其封闭的k连接链
+     * k连接用数组表示，分别为v1 r1 v2 r2 v3 r3 ..
+     *
+     * @param vertice
+     * @param k
+     * @param kbLinkedInstances
+     * @return
+     */
+    public List<String[]> findClosedKConnectivityChains(Vertice vertice, int k, Set<String> kbLinkedInstances) {
+        List<String[]> chains = findKConnectivityChains(vertice, k, null);
+        return ListUtil.filter(closeChains(chains, kbLinkedInstances));
+
+    }
+
+    /**
+     * 给定起始点，查询其Type链
+     * 用数组存，格式是二元组(类，起始点)
+     *
+     * @param vertice
+     * @return
+     */
+    public List<String[]> findTypedChains(Vertice vertice) {
+        List<Edge> edges = vertice.getEdges();
+        List<String[]> chains = new ArrayList<>();
+        for (Edge edge : edges) {
+            if (edge.getRel().equals(TYPE_PROP))
+                chains.add(new String[]{edge.getVertice().getUri(), vertice.getUri()});
+        }
+        return ListUtil.filter(chains);
+    }
 
     /**
      * 给定一个起始点和k，填充其所有的k连接链，形成一个树形结构，根节点是这个起始点。
@@ -47,6 +79,13 @@ public class ChainHandler {
         return vertice;
     }
 
+    /**
+     * 给定起始点，找出其k连接链
+     * @param vertice
+     * @param k
+     * @param preChain
+     * @return
+     */
     public List<String[]> findKConnectivityChains(Vertice vertice, int k, String[] preChain) {
         if (preChain == null) preChain = new String[]{vertice.getUri()};
         List<String[]> kConnectivityChains = new ArrayList<>();
@@ -64,17 +103,30 @@ public class ChainHandler {
                 kConnectivityChains.addAll(postChains);
             }
         }
-        return kConnectivityChains;
+        return ListUtil.filter(kConnectivityChains);
     }
 
+    /**
+     * 求封闭的链，也就是要满足：1）尾节点在链接实例中；2)关系属性不是rdf-type
+     * @param chains
+     * @param kbLinkedInstances
+     * @return
+     */
     public List<String[]> closeChains(List<String[]> chains, Set<String> kbLinkedInstances) {
         if (ListUtil.isEmpty(chains)) return null;
         List<String[]> closedChains = new ArrayList<>();
         for (String[] chain : chains) {
-            if (kbLinkedInstances.contains(chain[chain.length - 1])) closedChains.add(chain);
+            if (kbLinkedInstances.contains(chain[chain.length - 1]) && isNoType(chain))
+                closedChains.add(chain);
         }
-        return closedChains;
+        return ListUtil.filter(closedChains);
     }
 
+    private boolean isNoType(String[] chain) {
+        for (String s : chain) {
+            if (s.trim().toLowerCase().equals(TYPE_PROP)) return false;
+        }
+        return true;
+    }
 
 }
