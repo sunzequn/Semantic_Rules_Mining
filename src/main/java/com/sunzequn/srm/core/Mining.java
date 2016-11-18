@@ -19,7 +19,7 @@ public class Mining {
     private List<String[]> linkedInstancePairs = new ArrayList<>();
     private Set<String> kb1LinkedInstances = new HashSet<>();
     private Set<String> kb2LinkedInstances = new HashSet<>();
-    private KConnectivityHandler kConnectivityHandler = new KConnectivityHandler();
+    private ChainHandler chainHandler = new ChainHandler();
 
 
     public Mining(String confFile) {
@@ -38,24 +38,20 @@ public class Mining {
     }
 
 
-    private void kConnectivitychain() {
-        int num = 0;
-        KConnectivityHandler kConnectivityHandler = new KConnectivityHandler();
+    private void kConnectivityChain() {
+        ChainHandler chainHandler = new ChainHandler();
         for (String[] pair : linkedInstancePairs) {
-
-            Vertice vertice = kConnectivityHandler.kConnectivityPopulation(pair[0], 2, 1, conf, kb1LinkedInstances);
-            System.out.println(vertice);
+            Vertice vertice = chainHandler.kConnectivityPopulation(pair[0], 2, 1, conf);
+            List<String[]> chains = chainHandler.findKConnectivityChains(vertice, 2, null);
+            List<String[]> closedChains = chainHandler.closeChains(chains, kb1LinkedInstances);
+            System.out.println(chains.size());
+            System.out.println(closedChains.size());
+//            printChains(closedChains);
             return;
-//            num++;
-//            if (num % 100 == 0){
-//                System.out.println(num);
-//            }
         }
-//        System.out.println(num);
-
     }
 
-    private void printPartterns(List<String[]> chains) {
+    private void printChains(List<String[]> chains) {
         for (String[] chain : chains) {
             System.out.println(chain.length);
             for (String achain : chain) {
@@ -74,7 +70,7 @@ public class Mining {
             confFile = "/home/sloriac/code/Semantic_Rules_Mining/src/main/resources/conf/input.properties";
         }
         Mining m = new Mining(confFile);
-        m.kConnectivitychain();
+        m.kConnectivityChain();
     }
 
 }

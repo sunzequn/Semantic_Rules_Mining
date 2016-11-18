@@ -9,34 +9,25 @@ import java.util.List;
 public class Vertice {
 
     private String uri;
-    private boolean isClosed = false;
     private List<Edge> edges = new ArrayList<>();
 
     public Vertice(String uri) {
         this.uri = uri;
     }
 
-    public Vertice(String uri, boolean isClosed, List<Edge> edges) {
-        this.uri = uri;
-        this.isClosed = isClosed;
-        this.edges = edges;
-    }
-
     public String getUri() {
         return uri;
+    }
+
+    public Vertice(String uri, List<Edge> edges) {
+        this.uri = uri;
+        this.edges = edges;
     }
 
     public void setUri(String uri) {
         this.uri = uri;
     }
 
-    public boolean isClosed() {
-        return isClosed;
-    }
-
-    public void setClosed(boolean closed) {
-        isClosed = closed;
-    }
 
     public List<Edge> getEdges() {
         return edges;
@@ -59,7 +50,6 @@ public class Vertice {
     public String toString() {
         return "Vertice{" +
                 "uri='" + uri + '\'' +
-                ", isClosed=" + isClosed +
                 ", edges=" + edges +
                 '}';
     }
