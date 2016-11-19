@@ -5,6 +5,7 @@ import com.sunzequn.srm.bean.Vertice;
 import com.sunzequn.srm.utils.RDFUtil;
 import com.sunzequn.srm.utils.ReadUtil;
 import com.sunzequn.srm.utils.TimeUtil;
+import org.apache.jena.reasoner.rulesys.builtins.Min;
 
 import java.util.*;
 
@@ -25,18 +26,23 @@ public class Mining {
     private Map<String, Set<String>> kb1LinkToKb2 = new HashMap<>();
     private Map<String, Set<String>> kb2LinkToKb1 = new HashMap<>();
 
+    TimeUtil timer = new TimeUtil(Mining.class);
+
     public Mining(String confFile) {
         conf = new Conf(confFile);
     }
 
     private void run() {
+        // 1）读取链接实例对
         readLinkedInstances();
+        // 2）初始化每个链接实例的k连接链
         generateVertices();
+        // 3）生成封闭的环模式
         generatePattern(1);
     }
 
     private void readLinkedInstances() {
-        TimeUtil.start();
+        timer.start();
         ReadUtil readUtil = new ReadUtil(conf.getLinkedInstance());
         List<String> lines = readUtil.readByLine();
         for (String line : lines) {
@@ -48,11 +54,11 @@ public class Mining {
             kb1LinkToKb2 = addKbLinkToKb(kb1LinkToKb2, li[0], li[1]);
             kb2LinkToKb1 = addKbLinkToKb(kb2LinkToKb1, li[1], li[0]);
         }
-        TimeUtil.print("链接实例数量： " + linkedInstancePairs.size());
+        timer.print("链接实例数量： " + linkedInstancePairs.size());
     }
 
     private void generateVertices() {
-        TimeUtil.start();
+        timer.start();
         for (String[] pair : linkedInstancePairs) {
             Vertice vertice1 = chainHandler.kConnectivityPopulation(pair[0], k, 1, conf);
             Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], k, 2, conf);
@@ -60,7 +66,7 @@ public class Mining {
                 linkedVertices.add(new Vertice[]{vertice1, vertice2});
             }
         }
-        TimeUtil.print("链接结点数量： " + linkedVertices.size());
+        timer.print("链接结点数量： " + linkedVertices.size());
     }
 
     private void generatePattern(int k) {
@@ -107,7 +113,7 @@ public class Mining {
         if (args.length > 0) {
             confFile = args[0];
         } else {
-            confFile = "target/classes/conf/input.properties";
+            confFile = "target/classes/input.properties";
         }
         Mining m = new Mining(confFile);
         m.run();

@@ -1,5 +1,7 @@
 package com.sunzequn.srm.utils;
 
+import org.apache.log4j.Logger;
+
 import java.util.Date;
 
 /**
@@ -7,31 +9,34 @@ import java.util.Date;
  */
 public class TimeUtil {
 
-    private static long startTime;
-    private static long endTime;
+    private long startTime;
+    private long endTime;
+    private static Logger logger;
 
-    private TimeUtil() {
+    public TimeUtil(Class clazz) {
+        logger = Logger.getLogger(clazz);
     }
 
-    public static void start() {
+    public void start() {
         startTime = new Date().getTime();
     }
 
-    public static void end() {
+    private void end() {
         endTime = new Date().getTime();
     }
 
-    private static long duration() {
+    private long duration() {
         end();
         return endTime - startTime;
     }
 
-    public static void print() {
+    public void print() {
         duration();
-        System.out.println("cost: " + duration() + " milliseconds");
+        logger.info("耗时: " + duration() + " milliseconds");
     }
 
-    public static void print(String message) {
-        System.out.println(message + "， 耗时: " + duration() + " milliseconds");
+    public void print(String message) {
+        logger.info(message + "， 耗时: " + duration() + " milliseconds");
     }
+
 }
