@@ -7,6 +7,7 @@ import com.sunzequn.srm.utils.ListUtil;
 import com.sunzequn.srm.utils.RDFUtil;
 import com.sunzequn.srm.utils.ReadUtil;
 import com.sunzequn.srm.utils.TimeUtil;
+import org.apache.log4j.Logger;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -18,10 +19,10 @@ public class Mining {
 
     private static final int THREAD_NUM = 50;
     private static final int K = 2;
+    private Logger logger = Logger.getLogger(Mining.class);
     private Conf conf;
 
-    private List<String[]> linkedInstancePairs = new ArrayList<>();
-    private List<Vertice[]> linkedVertices = new ArrayList<>();
+    private LinkedList<String[]> linkedInstancePairs = new LinkedList<>();
     private List<Pattern> patterns = new ArrayList<>();
 
     private Set<String> kb1LinkedInstances = new HashSet<>();
@@ -42,8 +43,6 @@ public class Mining {
         readLinkedInstances();
         // 2）初始化每个链接实例的k连接链
         generateVertices();
-        // 3）生成封闭的环模式
-        generatePattern(1);
 
     }
 
@@ -63,19 +62,49 @@ public class Mining {
         timer.print("链接实例数量： " + linkedInstancePairs.size());
     }
 
+
     private void generateVertices() {
         timer.start();
-        VerticePopulationHandler verticePopulationHandler = new VerticePopulationHandler(linkedInstancePairs, K, THREAD_NUM, conf);
-        linkedVertices = verticePopulationHandler.run();
-        timer.print("链接结点数量： " + linkedVertices.size());
+        Vector<Thread> threads = new Vector<>();
+        for (int i = 0; i < THREAD_NUM; i++) {
+            Thread thread = new Thread(() -> {
+                ChainHandler chainHandler = new ChainHandler();
+                while (true) {
+                    try {
+                        String[] pair = popPair();
+                        if (pair == null) return;
+                        Thread.sleep((long) (Math.random() * 100));
+                        Vertice vertice1 = chainHandler.kConnectivityPopulation(pair[0], K, 1, conf);
+                        // 对于kb2，也就是规则头，只查询1连接就行
+                        Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], 1, 2, conf);
+                        if (vertice1.isHasNext() && vertice2.isHasNext()) {
+                            generatePattern(vertice1, vertice2);
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, "thread" + i);
+            threads.add(thread);
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            try {
+                // 等待所有线程执行完毕
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        timer.print("封闭模式数量： " + patterns.size());
     }
 
-    private void generatePattern(int k) {
+
+    private synchronized void generatePattern(Vertice v1, Vertice v2) {
         timer.start();
-        for (Vertice[] linkedVertice : linkedVertices) {
-            Vertice v1 = linkedVertice[0];
-            Vertice v2 = linkedVertice[1];
-            List<String[]> closedChains1 = chainHandler.findClosedKConnectivityChains(v1, k, kb1LinkedInstances);
+        for (int i = 1; i <= K; i++) {
+            List<String[]> closedChains1 = chainHandler.findClosedKConnectivityChains(v1, i, kb1LinkedInstances);
             // 对于kb2，也就是规则头，只查询1连接就行
             List<String[]> closedChains2 = chainHandler.findClosedKConnectivityChains(v2, 1, kb2LinkedInstances);
             if (!ListUtil.isEmpty(closedChains1) && !ListUtil.isEmpty(closedChains2)) {
@@ -85,14 +114,22 @@ public class Mining {
                         String endV2 = chain2[chain2.length - 1];
                         Set<String> linkedInstance = kb1LinkToKb2.get(endV1);
                         if (linkedInstance.contains(endV2)) {
-                            patterns.add(new Pattern(chain2, chain1));
+                            Pattern pattern = new Pattern(chain2, chain1);
+                            logger.info(pattern.toString());
+                            patterns.add(pattern);
                         }
                     }
                 }
             }
         }
-        timer.print("环模式的数量：" + patterns.size());
     }
+
+
+    private synchronized String[] popPair() {
+        System.out.println(linkedInstancePairs.size());
+        return linkedInstancePairs.size() > 0 ? linkedInstancePairs.pop() : null;
+    }
+
 
     private Map<String, Set<String>> addKbLinkToKb(Map<String, Set<String>> kbLinkedToKb, String instance1, String instance2) {
         if (kbLinkedToKb.containsKey(instance1))

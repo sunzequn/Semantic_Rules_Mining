@@ -44,8 +44,8 @@ public class KConnectivityQuery extends BaseQuery {
                     String[] spv = new String[]{p.toString(), v.toString()};
                     spvs.add(spv);
                 }
-                //　过滤掉literals
-                return RDFUtil.chainsFilter(spvs);
+                //　过滤掉literals和非该kb的实体
+                return RDFUtil.spvFilter(spvs, conf.getLocalname(kb));
             }
         } catch (Exception e) {
             e.getCause();

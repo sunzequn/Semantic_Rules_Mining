@@ -3,6 +3,7 @@ package com.sunzequn.srm.query;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFactory;
+import org.apache.log4j.Logger;
 
 import java.net.URL;
 import java.net.URLConnection;
@@ -14,6 +15,8 @@ import java.net.URLEncoder;
  * Sparql查询
  */
 public class BaseQuery {
+
+    private Logger logger = Logger.getLogger(BaseQuery.class);
 
     /**
      * 通过HTTP去查询
@@ -34,7 +37,7 @@ public class BaseQuery {
             ResultSet rs = ResultSetFactory.fromXML(connAPI.getInputStream());
             return rs.hasNext() ? rs : null;
         } catch (Exception e) {
-            e.printStackTrace();
+//            logger.debug(e.getCause());
         }
         return null;
     }

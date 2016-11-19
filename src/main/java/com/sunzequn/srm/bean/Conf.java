@@ -16,6 +16,8 @@ public class Conf {
     private String endpoint2;
     private String graph1;
     private String graph2;
+    private String localname1;
+    private String localname2;
     private String prefix;
     private String suffix;
     private int timeout;
@@ -32,6 +34,8 @@ public class Conf {
         suffix = propertiesUtil.getValue("suffix");
         graph1 = propertiesUtil.getValue("graph1");
         graph2 = propertiesUtil.getValue("graph2");
+        localname1 = propertiesUtil.getValue("localname1");
+        localname2 = propertiesUtil.getValue("localname2");
         timeout = Integer.parseInt(propertiesUtil.getValue("timeout"));
         linkedInstance = propertiesUtil.getValue("linkedInstance");
         if (ontology1 == null || ontology2 == null || endpoint1 == null || endpoint2 == null || linkedInstance == null) {
@@ -60,6 +64,12 @@ public class Conf {
             return graph2;
     }
 
+    public String getLocalname(int kb) {
+        if (kb == 1)
+            return localname1;
+        else
+            return localname2;
+    }
 
     public String getLinkedInstance() {
         return linkedInstance;

@@ -11,7 +11,7 @@ public class TimeUtil {
 
     private long startTime;
     private long endTime;
-    private static Logger logger;
+    private Logger logger;
 
     public TimeUtil(Class clazz) {
         logger = Logger.getLogger(clazz);

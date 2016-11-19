@@ -11,24 +11,24 @@ import java.util.List;
 public class RDFUtil {
 
     /**
-     * @param chains 链的数组，s r o，检查o是不是实体
+     * @param spvs 链的数组，s r v，检查v是不是实体
      * @return
      */
-    public static List<String[]> chainsFilter(List<String[]> chains) {
-        if (ListUtil.isEmpty(chains)) {
+    public static List<String[]> spvFilter(List<String[]> spvs, String localname) {
+        if (ListUtil.isEmpty(spvs)) {
             return null;
         }
         List<String[]> res = new ArrayList<>();
-        for (String[] chain : chains) {
-            if (isChain(chain)) {
-                res.add(chain);
+        for (String[] spv : spvs) {
+            if (isSRO(spv, localname)) {
+                res.add(spv);
             }
         }
         return ListUtil.filter(res);
     }
 
-    private static boolean isChain(String[] chain) {
-        return chain[chain.length - 1].toLowerCase().startsWith("http");
+    private static boolean isSRO(String[] spv, String localname) {
+        return spv[spv.length - 1].toLowerCase().startsWith(localname);
     }
 
     public static String[] parseTTLLine(String line) {
