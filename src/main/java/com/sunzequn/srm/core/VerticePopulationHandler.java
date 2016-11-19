@@ -35,8 +35,8 @@ public class VerticePopulationHandler {
                     try {
                         String[] pair = popPair();
                         if (pair == null) return;
-                        System.out.println(Arrays.toString(pair));
                         Thread.sleep((long) (Math.random() * 100));
+                        System.out.println(Arrays.toString(pair));
                         Vertice vertice1 = chainHandler.kConnectivityPopulation(pair[0], K, 1, conf);
                         // 对于kb2，也就是规则头，只查询1连接就行
                         Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], 1, 2, conf);
