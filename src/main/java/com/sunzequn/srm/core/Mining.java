@@ -8,6 +8,7 @@ import com.sunzequn.srm.utils.RDFUtil;
 import com.sunzequn.srm.utils.ReadUtil;
 import com.sunzequn.srm.utils.TimeUtil;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -15,6 +16,7 @@ import java.util.*;
  */
 public class Mining {
 
+    private static final int THREAD_NUM = 50;
     private static final int K = 2;
     private Conf conf;
 
@@ -63,14 +65,8 @@ public class Mining {
 
     private void generateVertices() {
         timer.start();
-        for (String[] pair : linkedInstancePairs) {
-            Vertice vertice1 = chainHandler.kConnectivityPopulation(pair[0], K, 1, conf);
-            // 对于kb2，也就是规则头，只查询1连接就行
-            Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], 1, 2, conf);
-            if (vertice1.isHasNext() && vertice2.isHasNext()) {
-                linkedVertices.add(new Vertice[]{vertice1, vertice2});
-            }
-        }
+        VerticePopulationHandler verticePopulationHandler = new VerticePopulationHandler(linkedInstancePairs, K, THREAD_NUM, conf);
+        linkedVertices = verticePopulationHandler.run();
         timer.print("链接结点数量： " + linkedVertices.size());
     }
 
@@ -109,6 +105,7 @@ public class Mining {
         return kbLinkedToKb;
     }
 
+
     private void kConnectivityChain() {
         ChainHandler chainHandler = new ChainHandler();
         for (String[] pair : linkedInstancePairs) {
@@ -117,18 +114,7 @@ public class Mining {
             System.out.println(closedChains.size());
             List<String[]> typeChains = chainHandler.findTypedChains(vertice);
             System.out.println(typeChains.size());
-            printChains(typeChains);
             return;
-        }
-    }
-
-    private void printChains(List<String[]> chains) {
-        for (String[] chain : chains) {
-            System.out.println(chain.length);
-            for (String achain : chain) {
-                System.out.println(achain + " ");
-            }
-            System.out.println("----");
         }
     }
 
@@ -143,5 +129,6 @@ public class Mining {
         Mining m = new Mining(confFile);
         m.run();
     }
+
 
 }
