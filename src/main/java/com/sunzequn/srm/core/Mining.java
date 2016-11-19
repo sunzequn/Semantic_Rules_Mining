@@ -1,11 +1,12 @@
 package com.sunzequn.srm.core;
 
 import com.sunzequn.srm.bean.Conf;
+import com.sunzequn.srm.bean.Pattern;
 import com.sunzequn.srm.bean.Vertice;
+import com.sunzequn.srm.utils.ListUtil;
 import com.sunzequn.srm.utils.RDFUtil;
 import com.sunzequn.srm.utils.ReadUtil;
 import com.sunzequn.srm.utils.TimeUtil;
-import org.apache.jena.reasoner.rulesys.builtins.Min;
 
 import java.util.*;
 
@@ -14,11 +15,12 @@ import java.util.*;
  */
 public class Mining {
 
-    private int k = 2;
+    private static final int K = 2;
     private Conf conf;
+
     private List<String[]> linkedInstancePairs = new ArrayList<>();
     private List<Vertice[]> linkedVertices = new ArrayList<>();
-    private ChainHandler chainHandler = new ChainHandler();
+    private List<Pattern> patterns = new ArrayList<>();
 
     private Set<String> kb1LinkedInstances = new HashSet<>();
     private Set<String> kb2LinkedInstances = new HashSet<>();
@@ -26,7 +28,8 @@ public class Mining {
     private Map<String, Set<String>> kb1LinkToKb2 = new HashMap<>();
     private Map<String, Set<String>> kb2LinkToKb1 = new HashMap<>();
 
-    TimeUtil timer = new TimeUtil(Mining.class);
+    private TimeUtil timer = new TimeUtil(Mining.class);
+    private ChainHandler chainHandler = new ChainHandler();
 
     public Mining(String confFile) {
         conf = new Conf(confFile);
@@ -39,6 +42,7 @@ public class Mining {
         generateVertices();
         // 3）生成封闭的环模式
         generatePattern(1);
+
     }
 
     private void readLinkedInstances() {
@@ -60,8 +64,9 @@ public class Mining {
     private void generateVertices() {
         timer.start();
         for (String[] pair : linkedInstancePairs) {
-            Vertice vertice1 = chainHandler.kConnectivityPopulation(pair[0], k, 1, conf);
-            Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], k, 2, conf);
+            Vertice vertice1 = chainHandler.kConnectivityPopulation(pair[0], K, 1, conf);
+            // 对于kb2，也就是规则头，只查询1连接就行
+            Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], 1, 2, conf);
             if (vertice1.isHasNext() && vertice2.isHasNext()) {
                 linkedVertices.add(new Vertice[]{vertice1, vertice2});
             }
@@ -70,7 +75,27 @@ public class Mining {
     }
 
     private void generatePattern(int k) {
-
+        timer.start();
+        for (Vertice[] linkedVertice : linkedVertices) {
+            Vertice v1 = linkedVertice[0];
+            Vertice v2 = linkedVertice[1];
+            List<String[]> closedChains1 = chainHandler.findClosedKConnectivityChains(v1, k, kb1LinkedInstances);
+            // 对于kb2，也就是规则头，只查询1连接就行
+            List<String[]> closedChains2 = chainHandler.findClosedKConnectivityChains(v2, 1, kb2LinkedInstances);
+            if (!ListUtil.isEmpty(closedChains1) && !ListUtil.isEmpty(closedChains2)) {
+                for (String[] chain1 : closedChains1) {
+                    for (String[] chain2 : closedChains2) {
+                        String endV1 = chain1[chain1.length - 1];
+                        String endV2 = chain2[chain2.length - 1];
+                        Set<String> linkedInstance = kb1LinkToKb2.get(endV1);
+                        if (linkedInstance.contains(endV2)) {
+                            patterns.add(new Pattern(chain2, chain1));
+                        }
+                    }
+                }
+            }
+        }
+        timer.print("环模式的数量：" + patterns.size());
     }
 
     private Map<String, Set<String>> addKbLinkToKb(Map<String, Set<String>> kbLinkedToKb, String instance1, String instance2) {
