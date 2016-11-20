@@ -65,7 +65,7 @@ public class Mining {
         for (int i = 0; i < K; i++) {
             Map<String, Pattern> patternMap = patternMaps.get(i);
             for (String s : patternMap.keySet()) {
-                logger.info(s + " " + patternMap.get(s).getPatternInstances().size());
+                logger.info(s + " " + patternMap.get(s).getInstancesNum());
             }
         }
 
@@ -138,7 +138,6 @@ public class Mining {
 
 
     private synchronized void generatePattern(Vertice v1, Vertice v2, ChainHandler chainHandler, PatternGenerator patternGenerator) {
-        timer.start();
         // 对于kb2，也就是规则头，只查询1连接就行
         List<String[]> closedChains2 = chainHandler.findClosedKConnectivityChains(v2, 1, kb2LinkedInstances);
         for (int i = 1; i <= K; i++) {

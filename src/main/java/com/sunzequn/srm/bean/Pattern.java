@@ -24,6 +24,10 @@ public class Pattern {
         patternInstances.add(patternInstance);
     }
 
+    public int getInstancesNum() {
+        return patternInstances.size();
+    }
+
     public String getHead() {
         return head;
     }

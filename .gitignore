@@ -2,7 +2,7 @@
 target
 Semantic_Rules_Mining.iml
 *.ttl
-log.*
+log.log.1connnectivity
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
