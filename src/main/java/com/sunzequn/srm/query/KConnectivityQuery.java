@@ -7,7 +7,9 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by sloriac on 16-11-17.
@@ -26,10 +28,9 @@ public class KConnectivityQuery extends BaseQuery {
      */
     public List<String[]> query1Connectivity(Conf conf, int kb, String uri) {
         try {
-
             // 过滤掉非本知识库的查询，本来是在RDFUtil.spvFilter这个时候过滤的
             // 但是考虑到后面可能有用，就保留非本知识库的数据，只是不查询而已
-            if (!uri.contains(conf.getLocalname(kb))) return null;
+            if (!uri.startsWith(conf.getInstanceNS(kb))) return null;
             String sparql;
             String graph = conf.getGraph(kb);
             if (graph.equals("None")) {
@@ -41,12 +42,19 @@ public class KConnectivityQuery extends BaseQuery {
             ResultSet rs = run(conf.getEndpoint(kb), conf.getPrefix(), conf.getSuffix(), sparql, conf.getTimeout());
             if (rs != null) {
                 List<String[]> spvs = new ArrayList<>();
+                Set<String> pvs = new HashSet<>();
                 while (rs.hasNext()) {
                     QuerySolution qs = rs.nextSolution();
                     RDFNode p = qs.get("p");
                     RDFNode v = qs.get("v");
-                    String[] spv = new String[]{p.toString(), v.toString()};
-                    spvs.add(spv);
+                    // pv判重，我们的GeoNames有问题，type defined有两个或三个，好像是因为之前导入我爬取的其他数据的原因
+                    // virtuoso不会主动判重
+                    if (!pvs.contains(p.toString() + v.toString())) {
+                        String[] spv = new String[]{p.toString(), v.toString()};
+                        spvs.add(spv);
+                        pvs.add(p.toString() + v.toString());
+                    }
+
                 }
                 //　过滤掉literals和非该kb的实体
                 return RDFUtil.spvFilter(spvs);

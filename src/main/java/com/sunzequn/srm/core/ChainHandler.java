@@ -42,14 +42,15 @@ public class ChainHandler {
      * 用数组存，格式是二元组(类，起始点)
      *
      * @param vertice
-     * @param localname
+     * @param ontologyNS
      * @return
      */
-    public List<String[]> findTypedChains(Vertice vertice, String localname) {
+    public List<String[]> findTypedChains(Vertice vertice, String ontologyNS) {
         List<Edge> edges = vertice.getEdges();
         List<String[]> chains = new ArrayList<>();
         for (Edge edge : edges) {
-            if (edge.getRel().equals(TYPE_PROP) && edge.getVertice().getUri().contains(localname))
+//            System.out.println(edge);
+            if (edge.getRel().equals(TYPE_PROP) && edge.getVertice().getUri().startsWith(ontologyNS))
                 chains.add(new String[]{edge.getVertice().getUri(), vertice.getUri()});
         }
         return ListUtil.filter(chains);
