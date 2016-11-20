@@ -14,21 +14,21 @@ public class RDFUtil {
      * @param spvs 链的数组，s r v，检查v是不是实体
      * @return
      */
-    public static List<String[]> spvFilter(List<String[]> spvs, String localname) {
+    public static List<String[]> spvFilter(List<String[]> spvs) {
         if (ListUtil.isEmpty(spvs)) {
             return null;
         }
         List<String[]> res = new ArrayList<>();
         for (String[] spv : spvs) {
-            if (isSRO(spv, localname)) {
+            if (isSRO(spv)) {
                 res.add(spv);
             }
         }
         return ListUtil.filter(res);
     }
 
-    private static boolean isSRO(String[] spv, String localname) {
-        return spv[spv.length - 1].toLowerCase().startsWith(localname);
+    private static boolean isSRO(String[] spv) {
+        return spv[spv.length - 1].toLowerCase().startsWith("http://");
     }
 
     public static String[] parseTTLLine(String line) {

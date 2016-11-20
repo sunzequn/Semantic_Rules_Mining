@@ -9,7 +9,6 @@ import com.sunzequn.srm.utils.ReadUtil;
 import com.sunzequn.srm.utils.TimeUtil;
 import org.apache.log4j.Logger;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -18,21 +17,20 @@ import java.util.*;
 public class Mining {
 
     private static final int THREAD_NUM = 50;
-    private static final int K = 2;
+    private static final int K = 1;
     private Logger logger = Logger.getLogger(Mining.class);
+    private TimeUtil timer = new TimeUtil(Mining.class);
     private Conf conf;
 
     private LinkedList<String[]> linkedInstancePairs = new LinkedList<>();
     private List<Pattern> patterns = new ArrayList<>();
+    private List<Pattern> typePatterns = new ArrayList<>();
 
     private Set<String> kb1LinkedInstances = new HashSet<>();
     private Set<String> kb2LinkedInstances = new HashSet<>();
-
     private Map<String, Set<String>> kb1LinkToKb2 = new HashMap<>();
     private Map<String, Set<String>> kb2LinkToKb1 = new HashMap<>();
 
-    private TimeUtil timer = new TimeUtil(Mining.class);
-    private ChainHandler chainHandler = new ChainHandler();
 
     public Mining(String confFile) {
         conf = new Conf(confFile);
@@ -78,7 +76,8 @@ public class Mining {
                         // 对于kb2，也就是规则头，只查询1连接就行
                         Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], 1, 2, conf);
                         if (vertice1.isHasNext() && vertice2.isHasNext()) {
-                            generatePattern(vertice1, vertice2);
+                            generateTypePattern(vertice1, vertice2, chainHandler);
+//                            generatePattern(vertice1, vertice2, chainHandler);
                         }
 
                     } catch (Exception e) {
@@ -101,7 +100,7 @@ public class Mining {
     }
 
 
-    private synchronized void generatePattern(Vertice v1, Vertice v2) {
+    private synchronized void generatePattern(Vertice v1, Vertice v2, ChainHandler chainHandler) {
         timer.start();
         for (int i = 1; i <= K; i++) {
             List<String[]> closedChains1 = chainHandler.findClosedKConnectivityChains(v1, i, kb1LinkedInstances);
@@ -125,6 +124,19 @@ public class Mining {
     }
 
 
+    private synchronized void generateTypePattern(Vertice v1, Vertice v2, ChainHandler chainHandler) {
+        List<String[]> typePatterns1 = chainHandler.findTypedChains(v1, conf.getLocalname(1));
+        List<String[]> typePatterns2 = chainHandler.findTypedChains(v2, conf.getLocalname(2));
+        for (String[] pattern1 : typePatterns1) {
+            for (String[] pattern2 : typePatterns2) {
+                Pattern pattern = new Pattern(pattern2, pattern1);
+                logger.info(pattern.toString());
+                typePatterns.add(pattern);
+            }
+        }
+    }
+
+
     private synchronized String[] popPair() {
         System.out.println(linkedInstancePairs.size());
         return linkedInstancePairs.size() > 0 ? linkedInstancePairs.pop() : null;
@@ -140,19 +152,6 @@ public class Mining {
             kbLinkedToKb.put(instance1, set);
         }
         return kbLinkedToKb;
-    }
-
-
-    private void kConnectivityChain() {
-        ChainHandler chainHandler = new ChainHandler();
-        for (String[] pair : linkedInstancePairs) {
-            Vertice vertice = chainHandler.kConnectivityPopulation(pair[0], 2, 1, conf);
-            List<String[]> closedChains = chainHandler.findClosedKConnectivityChains(vertice, 2, kb1LinkedInstances);
-            System.out.println(closedChains.size());
-            List<String[]> typeChains = chainHandler.findTypedChains(vertice);
-            System.out.println(typeChains.size());
-            return;
-        }
     }
 
 

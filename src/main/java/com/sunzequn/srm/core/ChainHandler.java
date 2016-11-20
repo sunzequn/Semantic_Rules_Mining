@@ -42,13 +42,14 @@ public class ChainHandler {
      * 用数组存，格式是二元组(类，起始点)
      *
      * @param vertice
+     * @param localname
      * @return
      */
-    public List<String[]> findTypedChains(Vertice vertice) {
+    public List<String[]> findTypedChains(Vertice vertice, String localname) {
         List<Edge> edges = vertice.getEdges();
         List<String[]> chains = new ArrayList<>();
         for (Edge edge : edges) {
-            if (edge.getRel().equals(TYPE_PROP))
+            if (edge.getRel().equals(TYPE_PROP) && edge.getVertice().getUri().contains(localname))
                 chains.add(new String[]{edge.getVertice().getUri(), vertice.getUri()});
         }
         return ListUtil.filter(chains);

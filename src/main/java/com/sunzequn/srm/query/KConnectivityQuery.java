@@ -26,6 +26,10 @@ public class KConnectivityQuery extends BaseQuery {
      */
     public List<String[]> query1Connectivity(Conf conf, int kb, String uri) {
         try {
+
+            // 过滤掉非本知识库的查询，本来是在RDFUtil.spvFilter这个时候过滤的
+            // 但是考虑到后面可能有用，就保留非本知识库的数据，只是不查询而已
+            if (!uri.contains(conf.getLocalname(kb))) return null;
             String sparql;
             String graph = conf.getGraph(kb);
             if (graph.equals("None")) {
@@ -45,7 +49,7 @@ public class KConnectivityQuery extends BaseQuery {
                     spvs.add(spv);
                 }
                 //　过滤掉literals和非该kb的实体
-                return RDFUtil.spvFilter(spvs, conf.getLocalname(kb));
+                return RDFUtil.spvFilter(spvs);
             }
         } catch (Exception e) {
             e.getCause();
