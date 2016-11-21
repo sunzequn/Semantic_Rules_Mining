@@ -58,16 +58,17 @@ public class Mining {
          */
         generateVertices();
 
-//        for (String key : typePatternMap.keySet()) {
-//            System.out.println(key);
-//        }
-
-        for (int i = 0; i < K; i++) {
-            Map<String, Pattern> patternMap = patternMaps.get(i);
-            for (String s : patternMap.keySet()) {
-                logger.info(s + " " + patternMap.get(s).getInstancesNum());
-            }
+        for (String key : typePatternMap.keySet()) {
+            Pattern pattern = typePatternMap.get(key);
+            logger.info(key + " " + pattern.getInstancesNum());
         }
+
+//        for (int i = 0; i < K; i++) {
+//            Map<String, Pattern> patternMap = patternMaps.get(i);
+//            for (String s : patternMap.keySet()) {
+//                logger.info(s + " " + patternMap.get(s).getInstancesNum());
+//            }
+//        }
 
     }
 
@@ -110,8 +111,8 @@ public class Mining {
                         // 对于kb2，也就是规则头，只查询1连接就行
                         Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], 1, 2, conf);
                         if (vertice1.isHasNext() && vertice2.isHasNext()) {
-//                            generateTypePattern(vertice1, vertice2, chainHandler, patternGenerator);
-                            generatePattern(vertice1, vertice2, chainHandler, patternGenerator);
+                            generateTypePattern(vertice1, vertice2, chainHandler, patternGenerator);
+//                            generatePattern(vertice1, vertice2, chainHandler, patternGenerator);
                         }
 
                     } catch (Exception e) {
@@ -151,7 +152,6 @@ public class Mining {
                         Set<String> linkedInstance = kb1LinkToKb2.get(endV1);
                         if (linkedInstance.contains(endV2)) {
                             PatternInstance patternInstance = new PatternInstance(chain2, chain1);
-//                            logger.info(patternInstance.toString());
                             patternGenerator.generatePatterns(patternMap, patternInstance);
                         }
                     }
@@ -167,7 +167,6 @@ public class Mining {
         for (String[] pattern1 : typePatterns1) {
             for (String[] pattern2 : typePatterns2) {
                 PatternInstance patternInstance = new PatternInstance(pattern2, pattern1);
-//                logger.info(patternInstance.toString());
                 patternGenerator.generateTypePatterns(typePatternMap, patternInstance);
             }
         }

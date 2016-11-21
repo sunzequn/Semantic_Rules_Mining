@@ -13,14 +13,25 @@ public class PatternGenerator {
 
     public void generateTypePatterns(Map<String, Pattern> patternMap, PatternInstance patternInstance) {
         String headType = patternInstance.getHead()[0];
-        String[] bodyType = patternInstance.getBody();
-        add2PatternMap(patternMap, headType, bodyType, patternInstance);
+        String bodyType = patternInstance.getBody()[0];
+        add2TypePatternMap(patternMap, headType, bodyType, patternInstance);
     }
 
     public void generatePatterns(Map<String, Pattern> patternMap, PatternInstance patternInstance) {
         String head = patternInstance.getHead()[1];
         String[] body = patternInstance.getBody();
         add2PatternMap(patternMap, head, body, patternInstance);
+    }
+
+    private void add2TypePatternMap(Map<String, Pattern> patternMap, String head, String body, PatternInstance patternInstance) {
+        String key = head + " <- " + body;
+        if (patternMap.containsKey(key)) {
+            patternMap.get(key).addPatternInstance(patternInstance);
+        } else {
+            Pattern pattern = new Pattern(head, new String[]{body});
+            pattern.addPatternInstance(patternInstance);
+            patternMap.put(key, pattern);
+        }
     }
 
     private void add2PatternMap(Map<String, Pattern> patternMap, String head, String[] body, PatternInstance patternInstance) {
