@@ -14,6 +14,8 @@ public class Pattern {
     private String head;
     private String[] body;
     private List<PatternInstance> patternInstances = new ArrayList<>();
+    private List<Transaction> headTransations = new ArrayList<>();
+    private List<Transaction> bodyTransations = new ArrayList<>();
 
     public Pattern(String head, String[] body) {
         this.head = head;
