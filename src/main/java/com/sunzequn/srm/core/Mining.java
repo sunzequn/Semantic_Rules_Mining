@@ -68,14 +68,11 @@ public class Mining {
          */
         generateVertices();
 
-//        scorePatternsMap(typePatternMap);
 
-        scorePatternMapList(patternMaps);
-
-//        for (String key : typePatternMap.keySet()) {
-//            Pattern pattern = typePatternMap.get(key);
-//            logger.info(key + " " + pattern.getInstancesNum());
-//        }
+        for (String key : typePatternMap.keySet()) {
+            Pattern pattern = typePatternMap.get(key);
+            logger.info(key + " " + pattern.getInstancesNum());
+        }
 
         for (int i = 0; i < K; i++) {
             Map<String, Pattern> patternMap = patternMaps.get(i);
@@ -84,6 +81,11 @@ public class Mining {
             }
         }
 
+
+        scorePatternsMap(typePatternMap);
+
+        scorePatternMapList(patternMaps);
+
     }
 
     private void readLinkedInstances(int n) {
@@ -91,11 +93,11 @@ public class Mining {
         ReadUtil readUtil = new ReadUtil(conf.getLinkedInstance());
 
         //开发环境，随机取n个
-        List<String> oriLines = readUtil.readByLine();
-        Collections.shuffle(oriLines);
-        List<String> lines = oriLines.subList(0, n);
-
-//        List<String> lines = readUtil.readByLine();
+//        List<String> oriLines = readUtil.readByLine();
+//        Collections.shuffle(oriLines);
+//        List<String> lines = oriLines.subList(0, n);
+//
+        List<String> lines = readUtil.readByLine();
 
         for (String line : lines) {
             String[] li = RDFUtil.parseTTLLine(line);
@@ -125,7 +127,7 @@ public class Mining {
                         // 对于kb2，也就是规则头，只查询1连接就行
                         Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], 1, 2, conf);
                         if (vertice1.isHasNext() && vertice2.isHasNext()) {
-//                            generateTypePattern(vertice1, vertice2, chainHandler, patternGenerator);
+                            generateTypePattern(vertice1, vertice2, chainHandler, patternGenerator);
                             generatePattern(vertice1, vertice2, chainHandler, patternGenerator);
                         }
 
