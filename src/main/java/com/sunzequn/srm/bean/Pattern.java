@@ -14,8 +14,9 @@ public class Pattern {
     private String head;
     private String[] body;
     private List<PatternInstance> patternInstances = new ArrayList<>();
-    private List<Transaction> headTransations = new ArrayList<>();
-    private List<Transaction> bodyTransations = new ArrayList<>();
+    private double probOfHeadInBody = 0;
+    private double probOfHead = 0;
+    private double score = 0;
 
     public Pattern(String head, String[] body) {
         this.head = head;
@@ -44,6 +45,30 @@ public class Pattern {
 
     public void setBody(String[] body) {
         this.body = body;
+    }
+
+    public double getScore() {
+        return score;
+    }
+
+    public void setScore(double score) {
+        this.score = score;
+    }
+
+    public double getProbOfHeadInBody() {
+        return probOfHeadInBody;
+    }
+
+    public void setProbOfHeadInBody(double probOfHeadInBody) {
+        this.probOfHeadInBody = probOfHeadInBody;
+    }
+
+    public double getProbOfHead() {
+        return probOfHead;
+    }
+
+    public void setProbOfHead(double probOfHead) {
+        this.probOfHead = probOfHead;
     }
 
     public List<PatternInstance> getPatternInstances() {

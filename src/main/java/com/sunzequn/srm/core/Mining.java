@@ -9,8 +9,6 @@ import com.sunzequn.srm.utils.RDFUtil;
 import com.sunzequn.srm.utils.ReadUtil;
 import com.sunzequn.srm.utils.TimeUtil;
 import org.apache.log4j.Logger;
-import org.apache.log4j.lf5.util.StreamUtils;
-import org.apache.log4j.xml.SAXErrorHandler;
 
 import java.util.*;
 
@@ -22,7 +20,7 @@ import java.util.*;
 public class Mining {
 
     private static final int THREAD_NUM = 10;
-    private static final int K = 1;
+    private static final int K = 2;
     private Logger logger = Logger.getLogger(Mining.class);
     private TimeUtil timer = new TimeUtil(Mining.class);
     private Conf conf;
@@ -45,6 +43,18 @@ public class Mining {
         }
     }
 
+    public static void main(String[] args) {
+        String confFile;
+        if (args.length > 0) {
+            confFile = args[0];
+        } else {
+            confFile = "target/classes/input.properties";
+        }
+        Mining m = new Mining(confFile);
+        m.run();
+    }
+
+
     private void run() {
         /*
         1）读取链接实例对
@@ -58,17 +68,21 @@ public class Mining {
          */
         generateVertices();
 
-        for (String key : typePatternMap.keySet()) {
-            Pattern pattern = typePatternMap.get(key);
-            logger.info(key + " " + pattern.getInstancesNum());
-        }
+//        scorePatternsMap(typePatternMap);
 
-//        for (int i = 0; i < K; i++) {
-//            Map<String, Pattern> patternMap = patternMaps.get(i);
-//            for (String s : patternMap.keySet()) {
-//                logger.info(s + " " + patternMap.get(s).getInstancesNum());
-//            }
+        scorePatternMapList(patternMaps);
+
+//        for (String key : typePatternMap.keySet()) {
+//            Pattern pattern = typePatternMap.get(key);
+//            logger.info(key + " " + pattern.getInstancesNum());
 //        }
+
+        for (int i = 0; i < K; i++) {
+            Map<String, Pattern> patternMap = patternMaps.get(i);
+            for (String s : patternMap.keySet()) {
+                logger.info(s + " " + patternMap.get(s).getInstancesNum());
+            }
+        }
 
     }
 
@@ -77,10 +91,11 @@ public class Mining {
         ReadUtil readUtil = new ReadUtil(conf.getLinkedInstance());
 
         //开发环境，随机取n个
-//        List<String> oriLines = readUtil.readByLine();
-//        Collections.shuffle(oriLines);
-//        List<String> lines = oriLines.subList(0, n);
-        List<String> lines = readUtil.readByLine();
+        List<String> oriLines = readUtil.readByLine();
+        Collections.shuffle(oriLines);
+        List<String> lines = oriLines.subList(0, n);
+
+//        List<String> lines = readUtil.readByLine();
 
         for (String line : lines) {
             String[] li = RDFUtil.parseTTLLine(line);
@@ -93,7 +108,6 @@ public class Mining {
         }
         timer.print("链接实例数量： " + linkedInstancePairs.size());
     }
-
 
     private void generateVertices() {
         timer.start();
@@ -111,8 +125,8 @@ public class Mining {
                         // 对于kb2，也就是规则头，只查询1连接就行
                         Vertice vertice2 = chainHandler.kConnectivityPopulation(pair[1], 1, 2, conf);
                         if (vertice1.isHasNext() && vertice2.isHasNext()) {
-                            generateTypePattern(vertice1, vertice2, chainHandler, patternGenerator);
-//                            generatePattern(vertice1, vertice2, chainHandler, patternGenerator);
+//                            generateTypePattern(vertice1, vertice2, chainHandler, patternGenerator);
+                            generatePattern(vertice1, vertice2, chainHandler, patternGenerator);
                         }
 
                     } catch (Exception e) {
@@ -137,6 +151,21 @@ public class Mining {
         }
     }
 
+    private void scorePatternsMap(Map<String, Pattern> patternMap) {
+        ScoreHandler scoreHandler = new ScoreHandler();
+        List<Pattern> rawPatterns = new ArrayList<>(patternMap.values());
+        scoreHandler.score(rawPatterns);
+        for (String key : patternMap.keySet()) {
+            Pattern pattern = patternMap.get(key);
+            logger.info(key + " probOfHead: " + pattern.getProbOfHead() + " probOfHeadInBody: " + pattern.getProbOfHeadInBody());
+        }
+    }
+
+    private void scorePatternMapList(List<Map<String, Pattern>> patternMaps) {
+        for (Map<String, Pattern> patternMap : patternMaps) {
+            scorePatternsMap(patternMap);
+        }
+    }
 
     private synchronized void generatePattern(Vertice v1, Vertice v2, ChainHandler chainHandler, PatternGenerator patternGenerator) {
         // 对于kb2，也就是规则头，只查询1连接就行
@@ -172,11 +201,9 @@ public class Mining {
         }
     }
 
-
     private synchronized String[] popPair() {
         return linkedInstancePairs.size() > 0 ? linkedInstancePairs.pop() : null;
     }
-
 
     private Map<String, Set<String>> addKbLinkToKb(Map<String, Set<String>> kbLinkedToKb, String instance1, String instance2) {
         if (kbLinkedToKb.containsKey(instance1))
@@ -188,18 +215,5 @@ public class Mining {
         }
         return kbLinkedToKb;
     }
-
-
-    public static void main(String[] args) {
-        String confFile;
-        if (args.length > 0) {
-            confFile = args[0];
-        } else {
-            confFile = "target/classes/input.properties";
-        }
-        Mining m = new Mining(confFile);
-        m.run();
-    }
-
 
 }
